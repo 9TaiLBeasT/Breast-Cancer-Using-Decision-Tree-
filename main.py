@@ -56,8 +56,8 @@ def create_model(data):
 
 
 def get_clean_data():
-    data = pd.read_csv("data.csv")
-    data = data.drop(["Unnamed: 32", "id"], axis=1)
+    data = pd.read_csv("Dataset/merged_data.csv")
+    data = data.drop(["Unnamed: 32", "id"], axis=1, errors='ignore')
 
     data["diagnosis"] = data["diagnosis"].map({"M": 1, "B": 0})
     return data
