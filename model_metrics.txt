@@ -1,0 +1,16 @@
+Accuracy (holdout): 0.9912280701754386
+Confusion matrix (holdout):
+[[141   2]
+ [  0  85]]
+Classification report (holdout):
+              precision    recall  f1-score   support
+
+           0       1.00      0.99      0.99       143
+           1       0.98      1.00      0.99        85
+
+    accuracy                           0.99       228
+   macro avg       0.99      0.99      0.99       228
+weighted avg       0.99      0.99      0.99       228
+
+ROC-AUC (holdout): 0.993006993006993
+ROC-AUC (5-fold CV): 0.9873222874055283

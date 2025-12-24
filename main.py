@@ -20,7 +20,22 @@ def create_model(data):
       though it is not a full C4.5 implementation with gain ratio + pruning).
     """
 
-    X = data.drop(["diagnosis"], axis=1)
+    # Canonical feature order matching app.py
+    feature_cols = [
+        "radius_mean", "texture_mean", "perimeter_mean", "area_mean", "smoothness_mean",
+        "compactness_mean", "concavity_mean", "concave points_mean", "symmetry_mean", "fractal_dimension_mean",
+        "radius_se", "texture_se", "perimeter_se", "area_se", "smoothness_se",
+        "compactness_se", "concavity_se", "concave points_se", "symmetry_se", "fractal_dimension_se",
+        "radius_worst", "texture_worst", "perimeter_worst", "area_worst", "smoothness_worst",
+        "compactness_worst", "concavity_worst", "concave points_worst", "symmetry_worst", "fractal_dimension_worst"
+    ]
+    
+    # Ensure data has all these columns
+    missing_cols = set(feature_cols) - set(data.columns)
+    if missing_cols:
+        raise ValueError(f"Missing columns in dataset: {missing_cols}")
+
+    X = data[feature_cols]
     y = data["diagnosis"]
 
     # Holdout split for a quick evaluation report
@@ -35,18 +50,33 @@ def create_model(data):
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
-    print("Accuracy (holdout): ", accuracy_score(y_test, y_pred))
-    print("Confusion matrix (holdout):\n", confusion_matrix(y_test, y_pred))
-    print("Classification report (holdout):\n", classification_report(y_test, y_pred))
+    
+    acc = accuracy_score(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred)
+    cr = classification_report(y_test, y_pred)
+    
+    print("Accuracy (holdout): ", acc)
+    print("Confusion matrix (holdout):\n", cm)
+    print("Classification report (holdout):\n", cr)
 
     # ROC-AUC requires probabilities
     y_proba = model.predict_proba(X_test)[:, 1]
-    print("ROC-AUC (holdout): ", roc_auc_score(y_test, y_proba))
+    roc_holdout = roc_auc_score(y_test, y_proba)
+    print("ROC-AUC (holdout): ", roc_holdout)
 
     # Cross-validated predictions (more stable estimate than a single split)
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     cv_proba = cross_val_predict(model, X, y, cv=cv, method="predict_proba")[:, 1]
-    print("ROC-AUC (5-fold CV): ", roc_auc_score(y, cv_proba))
+    roc_cv = roc_auc_score(y, cv_proba)
+    print("ROC-AUC (5-fold CV): ", roc_cv)
+    
+    # Save metrics to file
+    with open("model_metrics.txt", "w") as f:
+        f.write(f"Accuracy (holdout): {acc}\n")
+        f.write(f"Confusion matrix (holdout):\n{cm}\n")
+        f.write(f"Classification report (holdout):\n{cr}\n")
+        f.write(f"ROC-AUC (holdout): {roc_holdout}\n")
+        f.write(f"ROC-AUC (5-fold CV): {roc_cv}\n")
 
     # Print a readable rule representation (top of the tree). Useful for explainability.
     print("\nDecision tree rules (text):")
